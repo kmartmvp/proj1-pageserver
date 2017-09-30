@@ -102,9 +102,9 @@ def respond(sock):
                 for line in fp:
                     transmit(line, sock)
         else:
-            #log.info("Unhandled request: {}".format(request))
+            log.info("Unhandled request: {}".format(request))
             transmit(STATUS_NOT_FOUND, sock)
-            #transmit("\nPage not found: {}".format(request), sock)
+            transmit("\nPage not found: {}".format(request), sock)
         
     else:
         log.info("Unhandled request: {}".format(request))
