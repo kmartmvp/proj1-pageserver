@@ -93,19 +93,20 @@ def respond(sock):
 
     parts = request.split()
     if len(parts) > 1 and parts[0] == "GET":
-        file_path = get_options().DOCROOT + parts[1]
-        is_file = os.path.isfile(file_path)
-
-        if(is_file):
-            transmit(STATUS_OK, sock)
-            with open(file_path, "r", encoding="UTF-8") as fp:
-                for line in fp:
-                    transmit(line, sock)
+        if("//" in parts[1] or "~" in parts[1] or ".." in parts[1]):
+            transmit(STATUS_FORBIDDEN, sock)
         else:
-            log.info("Unhandled request: {}".format(request))
-            transmit(STATUS_NOT_FOUND, sock)
-            transmit("\nPage not found: {}".format(request), sock)
-        
+            file_path = get_options().DOCROOT + parts[1]
+            print(file_path)
+            is_file = os.path.isfile(file_path)
+
+            if(is_file):
+                transmit(STATUS_OK, sock)
+                with open(file_path, "r", encoding="UTF-8") as fp:
+                    for line in fp:
+                        transmit(line, sock)
+            else:
+                transmit(STATUS_NOT_FOUND, sock)
     else:
         log.info("Unhandled request: {}".format(request))
         transmit(STATUS_NOT_IMPLEMENTED, sock)
