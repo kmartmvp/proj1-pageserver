@@ -23,6 +23,8 @@ log = logging.getLogger(__name__)
 import socket    # Basic TCP/IP communication on the internet
 import _thread   # Response computation runs concurrently with main program
 
+import os.path  # For retrieving and checking HTML/CSS GET requests
+
 
 def listen(portnum):
     """
@@ -91,8 +93,19 @@ def respond(sock):
 
     parts = request.split()
     if len(parts) > 1 and parts[0] == "GET":
-        transmit(STATUS_OK, sock)
-        transmit(CAT, sock)
+        file_path = get_options().DOCROOT + parts[1]
+        is_file = os.path.isfile(file_path)
+
+        if(is_file):
+            transmit(STATUS_OK, sock)
+            with open(file_path, "r", encoding="UTF-8") as fp:
+                for line in fp:
+                    transmit(line, sock)
+        else:
+            #log.info("Unhandled request: {}".format(request))
+            transmit(STATUS_NOT_FOUND, sock)
+            #transmit("\nPage not found: {}".format(request), sock)
+        
     else:
         log.info("Unhandled request: {}".format(request))
         transmit(STATUS_NOT_IMPLEMENTED, sock)
