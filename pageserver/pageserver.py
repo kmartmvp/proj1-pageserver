@@ -93,18 +93,26 @@ def respond(sock):
 
     parts = request.split()
     if len(parts) > 1 and parts[0] == "GET":
-        if("//" in parts[1] or "~" in parts[1] or ".." in parts[1]):
+        if("//" in parts[1] or "~" in parts[1] or ".." in parts[1] or ("html" not in parts[1] and "css" not in parts[1])):
             transmit(STATUS_FORBIDDEN, sock)
+            log.info("Unhandled request: {}".format(request))
         else:
             file_path = get_options().DOCROOT + parts[1]
-            print(file_path)
+            log.debug("The file path is: " + file_path)
             is_file = os.path.isfile(file_path)
 
-            if(is_file):
-                transmit(STATUS_OK, sock)
-                with open(file_path, "r", encoding="UTF-8") as fp:
-                    for line in fp:
-                        transmit(line, sock)
+            if is_file:
+                try:
+                    transmit(STATUS_OK, sock)
+                    log.debug("status OK")
+                    with open(file_path, "r", encoding="UTF-8") as fp:
+                        for line in fp:
+                            log.debug("Transmitting...")
+                            transmit(line, sock)
+                except OSError as e:
+                    log.warn("Failed to open or read file")
+                    log.warn("Requested file was {}".format(source_path))
+                    log.warn("Exception: {}".format(error))
             else:
                 transmit(STATUS_NOT_FOUND, sock)
     else:
